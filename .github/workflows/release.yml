@@ -1,0 +1,52 @@
+name: Release and Publish to npm
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tag-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch all history and tags
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - run: npm install
+      - run: npm run build
+
+      # Get version from package.json
+      - id: get_version
+        run: |
+          echo "version=v$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
+
+      # Check if tag exists
+      - id: check_tag
+        run: |
+          if git rev-parse ${{ steps.get_version.outputs.version }} >/dev/null 2>&1; then
+            echo "Tag exists"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag does not exist"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Create and push tag if it doesn't exist
+      - name: Create and push tag
+        if: steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@.github.com"
+          git tag ${{ steps.get_version.outputs.version }}
+          git push origin ${{ steps.get_version.outputs.version }}
+
+      # Publish to npm
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

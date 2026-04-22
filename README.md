@@ -1,17 +1,14 @@
-# homebridge-yalesyncalarm - Homebridge support for Yale Sync Alarms
-
-![npm](https://img.shields.io/npm/v/homebridge-yalesyncalarm)
-[![Known Vulnerabilities](https://snyk.io//test/github/jonathandann/homebridge-yalesyncalarm/badge.svg?targetFile=package.json)](https://snyk.io//test/github/jonathandann/homebridge-yalesyncalarm/badge.svg?targetFile=package.json)
-[![npm](https://img.shields.io/npm/l/blink.svg 'license')](https://github.com/jonathandann/homebridge-yalesyncalarm/blob/master/LICENSE)
+# homebridge-yalesyncalarm-2 - Homebridge support for Yale Sync Alarms
 
 Homebridge plugin for the [Yale Sync Smart Home Alarm](https://www.yale.co.uk/en/yale/couk/products/smart-living/smart-home-alarms/sync-smart-alarm/) and [Yale Smart Home Alarm](https://www.yale.co.uk/en/yale/couk/products/smart-living/smart-home-alarms/smart-home-alarm-starter-kit/).
 
-# Features
+## Features
 
 - Exposes the alarm system as a Home.app security system. You can set it to "Home", "Away", "Night" and "Off" modes. Yale alarms only have 3 modes. So both "Home" and "Night" will "part-arm" the system.
 - Contact and motion sensors are exposed in Home.app
+- Updated with Homebridge 2.0.0 in mind.
 
-# Please Note
+## Please Note
 
 There's currently no way to hook into Yale's push service. It's not possible to get truly realtime updates.
 
@@ -19,9 +16,9 @@ The `refreshInterval` parameter in config.json is experimental. It causes the pl
 
 If you set `refreshInterval` to a value less than `1`. The automatic update is disabled. In this case switching away from, and back to Home.app will refresh the state of the system in Home.app.
 
-# Installation
+## Installation
 
-`npm install -g homebridge-blink`
+`npm install -g homebridge-yalesyncalarm-2`
 
 ## Configuration
 
@@ -37,10 +34,10 @@ If you set `refreshInterval` to a value less than `1`. The automatic update is d
 ]
 ```
 
-# Building from Source
+## Building from Source
 
 ```bash
-git clone https://github.com/jonathandann/homebridge-yalesyncalarm.git && cd homebridge-yalesyncalarm && npm install
+git clone https://github.com/thechelsuk/homebridge-yalesyncalarm-2.git && cd homebridge-yalesyncalarm-2 && npm install
 ```
 
 After running `npm install`, `npm` should automatically run `npm run build`, which runs `node_modules/typescript/bin/tsc` to compile the typescript files. If it doesn't then you can run either `node_modules/typescript/bin/tsc` or `npm run build`.
