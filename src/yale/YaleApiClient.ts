@@ -2,9 +2,9 @@ import { Panel, PanelState, AccessToken, ContactSensor, ContactSensorState, Moti
 import { Logger } from './Logger';
 // import { Lock } from './Lock'; // Uncomment if concurrency is needed
 
-const BASE_URL = 'https://mob.yalehomesystem.co.uk/';
-// Static Yale auth token from original implementation
-const YALE_AUTH_TOKEN = 'VnVWWDZYVjlXSUNzVHJhcUVpdVNCUHBwZ3ZPakxUeXNsR1LUHBjdTpkd3RPbE15WEtENUJ5ZW1GWHV0am55eGhrc0U3V0ZFY2p0dFcyOXRaSWNuWHlSWHFsWVBEZBSZE1xczF4R3VwVTlxa1o4UE5ubGlQanY5Z2hBZFFtMHpsM0h4V3dlS0ZBcGZzakpMcW1GMm1HR1lXRlpad01MRkw3MGR0bmNndQ==';
+const BASE_URL = 'https://mob.yalehomesystem.co.uk/yapi/';
+// Static Yale auth token from the old plugin (matches legacy working code)
+const YALE_AUTH_TOKEN = 'VnVWWDZYVjlXSUNzVHJhcUVpdVNCUHBwZ3ZPakxUeXNsRU1LUHBjdTpkd3RPbE15WEtENUJ5ZW1GWHV0am55eGhrc0U3V0ZFY2p0dFcyOXRaSWNuWHlSWHFsWVBEZ1BSZE1xczF4R3VwVTlxa1o4UE5ubGlQanY5Z2hBZFFtMHpsM0h4V3dlS0ZBcGZzakpMcW1GMm1HR1lXRlpad01MRkw3MGR0bmNndQ==';
 
 export class YaleApiClient {
   private username: string;
@@ -34,20 +34,29 @@ export class YaleApiClient {
   private async authenticate(): Promise<void> {
     const url = BASE_URL + 'o/token/';
     const body = `grant_type=password&username=${encodeURIComponent(this.username)}&password=${encodeURIComponent(this.password)}`;
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded ; charset=utf-8',
+      'Accept': 'application/json',
+      'Authorization': `Basic ${YALE_AUTH_TOKEN}`,
+    };
+    Logger.info('[YaleApiClient] AUTH REQUEST');
+    Logger.info('URL:', url);
+    Logger.info('Headers:', JSON.stringify(headers));
+    Logger.info('Body:', body);
     const resp = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-        'Authorization': `Basic ${YALE_AUTH_TOKEN}`,
-      },
+      headers,
       body,
     });
+    Logger.info('[YaleApiClient] AUTH RESPONSE');
+    Logger.info('Status:', resp.status, resp.statusText);
+    const respText = await resp.text();
+    Logger.info('Response Body:', respText);
     if (!resp.ok) {
-      Logger.error('Failed to authenticate with Yale API', await resp.text());
+      Logger.error('Failed to authenticate with Yale API', respText);
       throw new Error('Authentication failed');
     }
-    const data = await resp.json();
+    const data = JSON.parse(respText);
     this.accessToken = {
       token: data.access_token,
       expiration: new Date(Date.now() + (data.expires_in || 3600) * 1000),
@@ -56,23 +65,13 @@ export class YaleApiClient {
   }
 
   private async getPanelIdentifier(): Promise<string> {
-    if (this.panelIdentifier) return this.panelIdentifier;
-    const url = BASE_URL + 'api/panel/services/';
-    const resp = await this.fetchWithAuth(url);
-    if (!resp.ok) {
-      Logger.error('Failed to fetch panel identifier', await resp.text());
-      throw new Error('Failed to fetch panel identifier');
-    }
-    const data = await resp.json();
-    // Assume first service is the panel
-    this.panelIdentifier = data[0]?.id;
-    if (!this.panelIdentifier) throw new Error('Panel identifier not found');
-    return this.panelIdentifier;
+    // Old plugin does not use panel identifier, so just return a dummy value
+    return '1';
   }
 
   async getPanel(): Promise<Panel> {
-    const panelId = await this.getPanelIdentifier();
-    const url = BASE_URL + `api/panel/${panelId}/mode/`;
+    // Old plugin uses api/panel/mode endpoint (no panelId)
+    const url = BASE_URL + 'api/panel/mode/';
     const resp = await this.fetchWithAuth(url);
     if (!resp.ok) {
       Logger.error('Failed to fetch panel state', await resp.text());
@@ -80,18 +79,23 @@ export class YaleApiClient {
     }
     const data = await resp.json();
     return {
-      identifier: panelId,
+      identifier: '1',
       name: data.name || 'Yale Panel',
       state: data.mode as PanelState,
     };
   }
 
   async setPanelState(state: PanelState): Promise<Panel> {
-    const panelId = await this.getPanelIdentifier();
-    const url = BASE_URL + `api/panel/${panelId}/mode/`;
+    // Old plugin uses api/panel/mode endpoint (no panelId) and x-www-form-urlencoded body
+    const url = BASE_URL + 'api/panel/mode/';
+    const body = `area=1&mode=${state}`;
     const resp = await this.fetchWithAuth(url, {
       method: 'POST',
-      body: JSON.stringify({ mode: state }),
+      body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded ; charset=utf-8',
+        'Authorization': `Bearer ${this.accessToken!.token}`,
+      },
     });
     if (!resp.ok) {
       Logger.error('Failed to set panel state', await resp.text());
@@ -99,15 +103,15 @@ export class YaleApiClient {
     }
     const data = await resp.json();
     return {
-      identifier: panelId,
+      identifier: '1',
       name: data.name || 'Yale Panel',
       state: data.mode as PanelState,
     };
   }
 
   async getSensors(): Promise<Sensor[]> {
-    const panelId = await this.getPanelIdentifier();
-    const url = BASE_URL + `api/panel/${panelId}/device_status/`;
+    // Old plugin uses api/panel/device_status endpoint (no panelId)
+    const url = BASE_URL + 'api/panel/device_status/';
     const resp = await this.fetchWithAuth(url);
     if (!resp.ok) {
       Logger.error('Failed to fetch sensors', await resp.text());

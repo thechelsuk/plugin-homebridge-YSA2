@@ -11,6 +11,33 @@ const pluginName = 'homebridge-yalesyncalarm';
 const platformName = 'YaleSyncAlarm';
 
 class YaleSyncPlatform implements DynamicPlatformPlugin {
+
+		constructor(log: HBLogger, config: PlatformConfig, api: API) {
+			this._log = log;
+			this._config = config;
+			this._api = api;
+			this.Service = api.hap.Service;
+			this.Characteristic = api.hap.Characteristic;
+			this.PlatformAccessory = api.platformAccessory;
+			this.UUIDGenerator = api.hap.uuid;
+
+			// Decode config and initialize YaleApiClient
+			try {
+				const decodedConfig = platformConfigDecoder.decodeAny(config);
+				this._yale = new YaleApiClient(decodedConfig.username, decodedConfig.password);
+			} catch (e) {
+				this._log.error('Invalid configuration:', e);
+				return;
+			}
+
+			// Restore cached accessories
+			api.on('didFinishLaunching', () => {
+				this._log.info('Homebridge platform didFinishLaunching, starting discovery/heartbeat');
+				// Start periodic discovery/heartbeat
+				const interval = typeof config.refreshInterval === 'number' ? config.refreshInterval : 10;
+				this.heartbeat(interval).catch(err => this._log.error('Heartbeat error:', err));
+			});
+		}
 	private _yale?: YaleApiClient;
 	private _accessories: { [key: string]: any } = {};
 	private readonly _log!: HBLogger;
