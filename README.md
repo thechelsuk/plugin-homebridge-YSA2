@@ -1,4 +1,4 @@
-# homebridge-yalesyncalarm-2 - Homebridge support for Yale Sync Alarms
+# homebridge-ysa2-plugin - Homebridge support for Yale Sync Alarms
 
 Homebridge plugin for the [Yale Sync Smart Home Alarm](https://www.yale.co.uk/en/yale/couk/products/smart-living/smart-home-alarms/sync-smart-alarm/) and [Yale Smart Home Alarm](https://www.yale.co.uk/en/yale/couk/products/smart-living/smart-home-alarms/smart-home-alarm-starter-kit/).
 
@@ -18,7 +18,7 @@ If you set `refreshInterval` to a value less than `1`. The automatic update is d
 
 ## Installation
 
-`npm install -g homebridge-yalesyncalarm-2`
+`npm install -g homebridge-ysa2-plugin`
 
 ## Configuration
 
@@ -37,15 +37,15 @@ If you set `refreshInterval` to a value less than `1`. The automatic update is d
 ## Building from Source
 
 ```bash
-git clone https://github.com/thechelsuk/homebridge-yalesyncalarm-2.git
-&& cd homebridge-yalesyncalarm-2
+git clone https://github.com/thechelsuk/homebridge-ysa2-plugin.git
+&& cd homebridge-ysa2-plugin
 && npm install
 ```
 
 ### Running the beta version
 
 ```bash
-npm install @thechelsuk/homebridge-yalesyncalarm-2@beta
+npm install @thechelsuk/homebridge-ysa2-plugin@beta
 ```
 
 After running `npm install`, `npm` should automatically run `npm run build`, which runs `node_modules/typescript/bin/tsc` to compile the typescript files. If it doesn't then you can run either `node_modules/typescript/bin/tsc` or `npm run build`.
